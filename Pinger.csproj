@@ -69,12 +69,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppSettingsManager.cs" />
     <Compile Include="frmHiddenMain.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="frmHiddenMain.Designer.cs">
       <DependentUpon>frmHiddenMain.cs</DependentUpon>
     </Compile>
+    <Compile Include="Logger.cs" />
     <Compile Include="Networking.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

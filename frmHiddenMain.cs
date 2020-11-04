@@ -23,15 +23,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Net.NetworkInformation;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Pinger
@@ -39,7 +30,8 @@ namespace Pinger
     public partial class frmHiddenMain : Form
     {
         public Networking.PingerStatuses PingerStatus = Networking.PingerStatuses.Initializing;
-        
+        public Logger FileLogger = new Logger(AppSettingsManager.LogFileLocation, AppSettingsManager.LogEventsToFile);
+                
         public frmHiddenMain()
         {
             InitializeComponent();
@@ -48,7 +40,8 @@ namespace Pinger
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Hide();
-            pingTimer.Interval = int.Parse(ConfigurationManager.AppSettings["PingIntervalInSeconds"]) * 1000;
+            FileLogger.LogWithoutDuplicate("New Pinger Session Started...");
+            pingTimer.Interval = AppSettingsManager.PingIntervalInSeconds * 1000;
             pingTimer.Enabled = true;
             pingTimer.Start();
             startToolStripMenuItem.Enabled = false;
@@ -66,22 +59,23 @@ namespace Pinger
 
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            FileLogger.LogWithoutDuplicate("Pinger closing by user...");
             Application.Exit();
         }
 
         private void AttemptToPing()
         {
-            if (Networking.PingHost(ConfigurationManager.AppSettings["IpAddressOrHostnameToPing"]))
+            if (Networking.PingHost(AppSettingsManager.IpAddressOrHostnameToPing))
             {
-                if (bool.Parse(ConfigurationManager.AppSettings["ShowNotificationWhenStatusChanges"]))
+                if (AppSettingsManager.ShowNotificationWhenStatusChanges)
                 {
                     if (PingerStatus != Networking.PingerStatuses.Alive)
                     {
                         notifyIconStatus.BalloonTipIcon = ToolTipIcon.Info;
-                        notifyIconStatus.BalloonTipTitle = $"{ConfigurationManager.AppSettings["IpAddressOrHostnameToPing"]} is alive...";
+                        notifyIconStatus.BalloonTipTitle = $"{AppSettingsManager.IpAddressOrHostnameToPing} is alive...";
                         notifyIconStatus.BalloonTipText = "Ping was successful...";
-                        notifyIconStatus.ShowBalloonTip(int.Parse(ConfigurationManager.AppSettings["NotificationTimeoutInSeconds"]) * 1000);
-
+                        notifyIconStatus.ShowBalloonTip(AppSettingsManager.NotificationTimeoutInSeconds * 1000);
+                        FileLogger.LogWithoutDuplicate($"{AppSettingsManager.IpAddressOrHostnameToPing} is alive...");
                     }
                 }
                 notifyIconStatus.Icon = Properties.Resources.ConnectToRemoteServer;
@@ -90,15 +84,15 @@ namespace Pinger
             }
             else
             {
-                if (bool.Parse(ConfigurationManager.AppSettings["ShowNotificationWhenStatusChanges"]))
+                if (AppSettingsManager.ShowNotificationWhenStatusChanges)
                 {
                     if (PingerStatus == Networking.PingerStatuses.Alive)
                     {
                         notifyIconStatus.BalloonTipIcon = ToolTipIcon.Warning;
-                        notifyIconStatus.BalloonTipTitle = $"{ConfigurationManager.AppSettings["IpAddressOrHostnameToPing"]} is unreachable!";
-                        notifyIconStatus.BalloonTipText = ConfigurationManager.AppSettings["NotificationFailureMessage"];
-                        notifyIconStatus.ShowBalloonTip(int.Parse(ConfigurationManager.AppSettings["NotificationTimeoutInSeconds"]) * 1000);
-
+                        notifyIconStatus.BalloonTipTitle = $"{AppSettingsManager.IpAddressOrHostnameToPing} is unreachable!";
+                        notifyIconStatus.BalloonTipText = AppSettingsManager.NotificationFailureMessage;
+                        notifyIconStatus.ShowBalloonTip(AppSettingsManager.NotificationTimeoutInSeconds * 1000);
+                        FileLogger.LogWithoutDuplicate($"{AppSettingsManager.IpAddressOrHostnameToPing} is unreachable!");
                     }
                 }
                 notifyIconStatus.Icon = Properties.Resources.Disconnected;
@@ -114,6 +108,7 @@ namespace Pinger
             stopToolStripMenuItem.Enabled = true;
             pingNowToolStripMenuItem.Enabled = true;
             notifyIconStatus.Text = "Pinger | [Started]";
+            FileLogger.LogWithoutDuplicate("Pinger resumed by user...");
             AttemptToPing();
         }
 
@@ -126,6 +121,7 @@ namespace Pinger
             notifyIconStatus.Icon = Properties.Resources.Disconnected;
             notifyIconStatus.Text = "Pinger | [Stopped]";
             PingerStatus = Networking.PingerStatuses.Stopped;
+            FileLogger.LogWithoutDuplicate("Pinger paused by user...");
         }
 
         private void pingNowToolStripMenuItem_Click(object sender, EventArgs e)
