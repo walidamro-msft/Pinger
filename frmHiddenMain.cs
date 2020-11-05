@@ -92,12 +92,12 @@ namespace Pinger
                         notifyIconStatus.BalloonTipTitle = $"{AppSettingsManager.IpAddressOrHostnameToPing} is unreachable!";
                         notifyIconStatus.BalloonTipText = AppSettingsManager.NotificationFailureMessage;
                         notifyIconStatus.ShowBalloonTip(AppSettingsManager.NotificationTimeoutInSeconds * 1000);
-                        FileLogger.LogWithoutDuplicate($"{AppSettingsManager.IpAddressOrHostnameToPing} is unreachable!");
                     }
                 }
                 notifyIconStatus.Icon = Properties.Resources.Disconnected;
                 notifyIconStatus.Text = $"Pinger (Unreachable) | {DateTime.Now.ToString("MM/dd/yyyy h:mm:ss tt")}";
                 PingerStatus = Networking.PingerStatuses.Unreachable;
+                FileLogger.LogWithoutDuplicate($"{AppSettingsManager.IpAddressOrHostnameToPing} is unreachable!");
             }
         }
 
